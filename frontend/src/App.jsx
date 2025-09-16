@@ -3,32 +3,25 @@ import "./App.css";
 
 // ✅ Environment variables for backend URLs
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "https://todos-backend-atpy.onrender.com";
-const SECOND_URL = process.env.REACT_APP_ANOTHER_URL || ""; // Optional second backend
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
 
-  // 🔹 Fetch todos on mount
+  // Fetch todos on mount
   useEffect(() => {
     fetchTodos();
   }, []);
 
-  // Helper to choose backend URL
-  const getUrl = () => BACKEND_URL || SECOND_URL;
-
-  // Fetch todos from backend
+  // Fetch todos
   const fetchTodos = async () => {
     try {
-      const url = `${getUrl()}/todos`;
-      console.log("Fetching todos from:", url);
-      const res = await fetch(url);
+      const res = await fetch(`${BACKEND_URL}/todos`);
       if (!res.ok) throw new Error("Failed to fetch todos");
       const data = await res.json();
       setTasks(data);
     } catch (err) {
       console.error("Error fetching todos:", err);
-      alert("Error fetching todos. Check your backend URL or server status.");
     }
   };
 
@@ -37,32 +30,29 @@ function App() {
     if (!newTask.trim()) return;
 
     try {
-      const url = `${getUrl()}/todos`;
-      const res = await fetch(url, {
+      const res = await fetch(`${BACKEND_URL}/todos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: newTask }),
       });
       if (!res.ok) throw new Error("Failed to add task");
       const addedTask = await res.json();
-      setTasks([...tasks, addedTask]);
+      setTasks([...tasks, addedTask]); // Update UI immediately
       setNewTask("");
     } catch (err) {
       console.error("Error adding task:", err);
-      alert("Error adding task");
     }
   };
 
   // Delete task
   const deleteTask = async (id) => {
     try {
-      const url = `${getUrl()}/todos/${id}`;
-      const res = await fetch(url, { method: "DELETE" });
+      const res = await fetch(`${BACKEND_URL}/todos/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete task");
-      setTasks(tasks.filter((t) => t._id !== id));
+      const deletedTask = await res.json();
+      setTasks(tasks.filter((t) => t._id !== deletedTask._id));
     } catch (err) {
       console.error("Error deleting task:", err);
-      alert("Error deleting task");
     }
   };
 
@@ -72,18 +62,16 @@ function App() {
     if (!updatedText?.trim()) return;
 
     try {
-      const url = `${getUrl()}/todos/${id}`;
-      const res = await fetch(url, {
+      const res = await fetch(`${BACKEND_URL}/todos/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: updatedText }),
       });
       if (!res.ok) throw new Error("Failed to update task");
       const updatedTask = await res.json();
-      setTasks(tasks.map((t) => (t._id === id ? updatedTask : t)));
+      setTasks(tasks.map((t) => (t._id === updatedTask._id ? updatedTask : t)));
     } catch (err) {
       console.error("Error updating task:", err);
-      alert("Error updating task");
     }
   };
 
@@ -92,18 +80,16 @@ function App() {
     const newStatus = task.status === "pending" ? "done" : "pending";
 
     try {
-      const url = `${getUrl()}/todos/${task._id}`;
-      const res = await fetch(url, {
+      const res = await fetch(`${BACKEND_URL}/todos/${task._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error("Failed to update status");
       const updatedTask = await res.json();
-      setTasks(tasks.map((t) => (t._id === task._id ? updatedTask : t)));
+      setTasks(tasks.map((t) => (t._id === updatedTask._id ? updatedTask : t)));
     } catch (err) {
       console.error("Error updating status:", err);
-      alert("Error updating status");
     }
   };
 
@@ -111,7 +97,6 @@ function App() {
     <div className="app">
       <div className="todo-container">
         <h1>✅ TODO LIST</h1>
-
         <div className="input-container">
           <input
             type="text"
@@ -125,9 +110,7 @@ function App() {
         <ol>
           {tasks.map((task) => (
             <li key={task._id}>
-              <span
-                style={{ textDecoration: task.status === "done" ? "line-through" : "none" }}
-              >
+              <span style={{ textDecoration: task.status === "done" ? "line-through" : "none" }}>
                 {task.task || "(no title)"}
               </span>{" "}
               - {task.status}

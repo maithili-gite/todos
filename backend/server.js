@@ -7,7 +7,7 @@ const todoRoutes = require("./routes/todoRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ CORS Middleware
+// CORS Middleware
 app.use(
   cors({
     origin: "*",
@@ -16,13 +16,13 @@ app.use(
   })
 );
 
-// Middleware
+// JSON Middleware
 app.use(express.json());
 
 // Routes
 app.use("/todos", todoRoutes);
 
-// Start server only after DB connection
+// Start server after DB connection
 connectDB().then(() => {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);

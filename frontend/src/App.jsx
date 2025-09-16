@@ -1,115 +1,87 @@
-import { useState, useEffect } from "react";
-import "./App.css";
+import { useEffect, useState } from "react";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-function App() {
-  const [tasks, setTasks] = useState([]);
+export default function App() {
+  const [todos, setTodos] = useState([]);
   const [newTask, setNewTask] = useState("");
+
+  // fetch all
+  const fetchTodos = async () => {
+    const res = await fetch(`${API_URL}/todos`);
+    const data = await res.json();
+    setTodos(data);
+  };
 
   useEffect(() => {
     fetchTodos();
   }, []);
 
-  const fetchTodos = async () => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/todos`);
-      const data = await res.json();
-      setTasks(data);
-    } catch {
-      alert("Error fetching todos");
-    }
+  // add
+  const addTodo = async () => {
+    if (!newTask.trim()) return alert("Task cannot be empty");
+    const res = await fetch(`${API_URL}/todos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task: newTask }),
+    });
+    const data = await res.json();
+    setTodos([...todos, data]);
+    setNewTask("");
   };
 
-  const addTask = async () => {
-    if (!newTask.trim()) return;
-    try {
-      const res = await fetch(`${BACKEND_URL}/todos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task: newTask }),
-      });
-      const addedTask = await res.json();
-      setTasks([...tasks, addedTask]);
-      setNewTask("");
-    } catch {
-      alert("Error adding task");
-    }
+  // delete
+  const deleteTodo = async (id) => {
+    await fetch(`${API_URL}/todos/${id}`, { method: "DELETE" });
+    setTodos(todos.filter((t) => t._id !== id));
   };
 
-  const deleteTask = async (id) => {
-    try {
-      await fetch(`${BACKEND_URL}/todos/${id}`, { method: "DELETE" });
-      setTasks(tasks.filter((t) => t._id !== id));
-    } catch {
-      alert("Error deleting task");
-    }
+  // mark done
+  const toggleStatus = async (id, status) => {
+    const res = await fetch(`${API_URL}/todos/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: status === "pending" ? "done" : "pending" }),
+    });
+    const data = await res.json();
+    setTodos(todos.map((t) => (t._id === id ? data : t)));
   };
 
-  const editTask = async (id, currentTask) => {
-    const updated = prompt("Edit task:", currentTask);
-    if (!updated?.trim()) return;
-    try {
-      const res = await fetch(`${BACKEND_URL}/todos/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task: updated }),
-      });
-      const updatedTask = await res.json();
-      setTasks(tasks.map((t) => (t._id === id ? updatedTask : t)));
-    } catch {
-      alert("Error updating task");
-    }
-  };
-
-  const toggleStatus = async (task) => {
-    const newStatus = task.status === "pending" ? "done" : "pending";
-    try {
-      const res = await fetch(`${BACKEND_URL}/todos/${task._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      const updatedTask = await res.json();
-      setTasks(tasks.map((t) => (t._id === task._id ? updatedTask : t)));
-    } catch {
-      alert("Error updating status");
-    }
+  // edit
+  const editTodo = async (id) => {
+    const newTask = prompt("Edit task:");
+    if (!newTask || !newTask.trim()) return;
+    const res = await fetch(`${API_URL}/todos/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task: newTask }),
+    });
+    const data = await res.json();
+    setTodos(todos.map((t) => (t._id === id ? data : t)));
   };
 
   return (
-    <div className="app">
-      <div className="todo-container">
-        <h1>✅ TODO LIST</h1>
-        <div className="input-container">
-          <input
-            type="text"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            placeholder="Enter task"
-          />
-          <button onClick={addTask}>Add</button>
-        </div>
-        <ol>
-          {tasks.map((task) => (
-            <li key={task._id}>
-              <span style={{ textDecoration: task.status === "done" ? "line-through" : "none" }}>
-                {task.task || "(no title)"}
-              </span>{" "}
-              - {task.status}
-              <div className="btn-group">
-                <button onClick={() => editTask(task._id, task.task)}>Edit</button>
-                <button onClick={() => deleteTask(task._id)}>Delete</button>
-                <button onClick={() => toggleStatus(task)}>
-                  {task.status === "pending" ? "Mark as Done" : "Undo"}
-                </button>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
+    <div style={{ padding: "20px" }}>
+      <h1>TODO LIST</h1>
+      <input
+        value={newTask}
+        onChange={(e) => setNewTask(e.target.value)}
+        placeholder="Enter task"
+      />
+      <button onClick={addTodo}>Add</button>
+
+      <ul>
+        {todos.map((todo) => (
+          <li key={todo._id}>
+            {todo.task} - {todo.status}
+            <button onClick={() => editTodo(todo._id)}>Edit</button>
+            <button onClick={() => deleteTodo(todo._id)}>Delete</button>
+            <button onClick={() => toggleStatus(todo._id, todo.status)}>
+              Mark as {todo.status === "pending" ? "Done" : "Pending"}
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
-
-export default App;

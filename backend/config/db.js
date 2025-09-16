@@ -1,32 +1,23 @@
-require("dotenv").config();
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 
 const uri = process.env.MONGO_URI;
-if (!uri) throw new Error("MONGO_URI not found in .env file");
+if (!uri) throw new Error("❌ MONGO_URI not found in .env");
 
-const client = new MongoClient(uri);
+let client;
 let db;
 
 async function connectDB() {
   if (db) return db;
-  try {
-    await client.connect();
-    db = client.db("todoDB"); // Change DB name if needed
-    console.log("✅ Connected to MongoDB Atlas");
-    return db;
-  } catch (err) {
-    console.error("❌ MongoDB connection failed:", err.message);
-    process.exit(1);
-  }
-}
-
-function getDB() {
-  if (!db) throw new Error("Database not connected!");
+  client = new MongoClient(uri);
+  await client.connect();
+  db = client.db("todoDB"); // database name
+  console.log("✅ MongoDB connected");
   return db;
 }
 
 function getTodosCollection() {
-  return getDB().collection("todos");
+  if (!db) throw new Error("❌ Database not initialized");
+  return db.collection("todos");
 }
 
-module.exports = { connectDB, getDB, getTodosCollection };
+module.exports = { connectDB, getTodosCollection, ObjectId };

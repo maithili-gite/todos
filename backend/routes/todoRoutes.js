@@ -1,41 +1,47 @@
 const express = require("express");
 const router = express.Router();
-const { getTodosCollection, ObjectId } = require("../models/todoModel");
+const { getTodosCollection, ObjectId } = require("../config/db");
 
-// Normalize todo
+// normalize todo
 const normalizeTodo = (todo) => ({
   _id: todo._id.toString(),
   task: todo.task,
   status: todo.status,
 });
 
-// GET all todos
+// GET all
 router.get("/", async (req, res) => {
   try {
     const todos = await getTodosCollection().find().toArray();
     res.json(todos.map(normalizeTodo));
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Failed to fetch todos" });
   }
 });
 
-// POST new todo
+// POST new
 router.post("/", async (req, res) => {
   const { task, status = "pending" } = req.body;
-  if (!task || !task.trim()) return res.status(400).json({ error: "Task cannot be empty" });
-
+  if (!task || !task.trim()) {
+    return res.status(400).json({ error: "Task cannot be empty" });
+  }
   try {
     const result = await getTodosCollection().insertOne({ task, status });
     res.status(201).json({ _id: result.insertedId.toString(), task, status });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Failed to create todo" });
   }
 });
 
-// PUT update todo
+// PUT update
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const { task, status } = req.body;
+
+  if (task !== undefined && !task.trim()) {
+    return res.status(400).json({ error: "Task cannot be empty" });
+  }
+
   const updateFields = {};
   if (task !== undefined) updateFields.task = task;
   if (status !== undefined) updateFields.status = status;
@@ -48,19 +54,19 @@ router.put("/:id", async (req, res) => {
     );
     if (!result.value) return res.status(404).json({ error: "Todo not found" });
     res.json(normalizeTodo(result.value));
-  } catch {
+  } catch (err) {
     res.status(400).json({ error: "Invalid ID format" });
   }
 });
 
-// DELETE todo
+// DELETE
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const result = await getTodosCollection().findOneAndDelete({ _id: new ObjectId(id) });
     if (!result.value) return res.status(404).json({ error: "Todo not found" });
-    res.json({ _id: id });
-  } catch {
+    res.json({ _id: id, message: "Deleted successfully" });
+  } catch (err) {
     res.status(400).json({ error: "Invalid ID format" });
   }
 });

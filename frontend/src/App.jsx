@@ -1,27 +1,30 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 
-// ✅ Use environment variables for backend URLs
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "https://todos-backend-atpy.onrender.com/todos";
-const SECOND_URL = process.env.REACT_APP_ANOTHER_URL || ""; // Optional, if you have another service
+// ✅ Environment variables for backend URLs
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "https://todos-backend-atpy.onrender.com";
+const SECOND_URL = process.env.REACT_APP_ANOTHER_URL || ""; // Optional second backend
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState([]);
+  const [newTask, setNewTask] = useState("");
 
+  // 🔹 Fetch todos on mount
   useEffect(() => {
     fetchTodos();
   }, []);
 
-  // Fetch todos from backend
+  // Fetch todos from primary backend
   const fetchTodos = async () => {
     try {
-      const res = await fetch(BACKEND_URL);
+      console.log("Fetching todos from:", BACKEND_URL);
+      const res = await fetch(`${BACKEND_URL}/todos`);
       if (!res.ok) throw new Error("Failed to fetch todos");
       const data = await res.json();
       setTasks(data);
+      console.log("Fetched todos:", data);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching todos:", err);
       alert("Error fetching todos");
     }
   };
@@ -31,16 +34,17 @@ function App() {
     if (!newTask.trim()) return;
 
     try {
-      const res = await fetch(BACKEND_URL, {
+      const res = await fetch(`${BACKEND_URL}/todos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: newTask }),
       });
+      if (!res.ok) throw new Error("Failed to add task");
       const addedTask = await res.json();
       setTasks([...tasks, addedTask]);
       setNewTask("");
     } catch (err) {
-      console.error(err);
+      console.error("Error adding task:", err);
       alert("Error adding task");
     }
   };
@@ -48,11 +52,11 @@ function App() {
   // Delete task
   const deleteTask = async (id) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${BACKEND_URL}/todos/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete task");
       setTasks(tasks.filter((t) => t._id !== id));
     } catch (err) {
-      console.error(err);
+      console.error("Error deleting task:", err);
       alert("Error deleting task");
     }
   };
@@ -63,15 +67,16 @@ function App() {
     if (!updatedText?.trim()) return;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/${id}`, {
+      const res = await fetch(`${BACKEND_URL}/todos/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: updatedText }),
       });
+      if (!res.ok) throw new Error("Failed to update task");
       const updatedTask = await res.json();
       setTasks(tasks.map((t) => (t._id === id ? updatedTask : t)));
     } catch (err) {
-      console.error(err);
+      console.error("Error updating task:", err);
       alert("Error updating task");
     }
   };
@@ -81,15 +86,16 @@ function App() {
     const newStatus = task.status === "pending" ? "done" : "pending";
 
     try {
-      const res = await fetch(`${BACKEND_URL}/${task._id}`, {
+      const res = await fetch(`${BACKEND_URL}/todos/${task._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
+      if (!res.ok) throw new Error("Failed to update status");
       const updatedTask = await res.json();
       setTasks(tasks.map((t) => (t._id === task._id ? updatedTask : t)));
     } catch (err) {
-      console.error(err);
+      console.error("Error updating status:", err);
       alert("Error updating status");
     }
   };
@@ -98,6 +104,7 @@ function App() {
     <div className="app">
       <div className="todo-container">
         <h1>✅ TODO LIST</h1>
+
         <div className="input-container">
           <input
             type="text"

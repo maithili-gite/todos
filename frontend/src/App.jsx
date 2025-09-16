@@ -1,32 +1,37 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 
-const BASE_URL = "https://todos-backend-atpy.onrender.com/todos";
+// ✅ Use environment variables for backend URLs
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "https://todos-backend-atpy.onrender.com/todos";
+const SECOND_URL = process.env.REACT_APP_ANOTHER_URL || ""; // Optional, if you have another service
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState("");
+  const [newTask, setNewTask] = useState([]);
 
   useEffect(() => {
     fetchTodos();
   }, []);
 
+  // Fetch todos from backend
   const fetchTodos = async () => {
     try {
-      const res = await fetch(BASE_URL);
+      const res = await fetch(BACKEND_URL);
       if (!res.ok) throw new Error("Failed to fetch todos");
       const data = await res.json();
       setTasks(data);
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Error fetching todos");
     }
   };
 
+  // Add new task
   const addTask = async () => {
     if (!newTask.trim()) return;
 
     try {
-      const res = await fetch(BASE_URL, {
+      const res = await fetch(BACKEND_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: newTask }),
@@ -34,51 +39,57 @@ function App() {
       const addedTask = await res.json();
       setTasks([...tasks, addedTask]);
       setNewTask("");
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Error adding task");
     }
   };
 
+  // Delete task
   const deleteTask = async (id) => {
     try {
-      const res = await fetch(`${BASE_URL}/${id}`, { method: "DELETE" });
-      console.log(res);
-      if (!res.ok) throw new Error();
+      const res = await fetch(`${BACKEND_URL}/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete task");
       setTasks(tasks.filter((t) => t._id !== id));
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Error deleting task");
     }
   };
 
+  // Edit task
   const editTask = async (id, currentText) => {
     const updatedText = prompt("Edit task:", currentText);
     if (!updatedText?.trim()) return;
 
     try {
-      const res = await fetch(`${BASE_URL}/${id}`, {
+      const res = await fetch(`${BACKEND_URL}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: updatedText }),
       });
       const updatedTask = await res.json();
       setTasks(tasks.map((t) => (t._id === id ? updatedTask : t)));
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Error updating task");
     }
   };
 
+  // Toggle task status
   const toggleStatus = async (task) => {
     const newStatus = task.status === "pending" ? "done" : "pending";
 
     try {
-      const res = await fetch(`${BASE_URL}/${task._id}`, {
+      const res = await fetch(`${BACKEND_URL}/${task._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
       const updatedTask = await res.json();
       setTasks(tasks.map((t) => (t._id === task._id ? updatedTask : t)));
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Error updating status");
     }
   };

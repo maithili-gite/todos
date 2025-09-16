@@ -1,0 +1,78 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* * Styles for the To-Do Application's "enter task" box.
+ * This code is based on the provided image and user's request.
+ */
+
+.todo-input-box {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 25px; /* Rounded corners */
+  padding: 10px 20px;
+  width: 40%; /* Adjust as needed */
+  margin: 20px auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 0 15px 5px rgba(122, 92, 219, 0.7); /* Inner glow effect */
+}
+
+.todo-input-box input[type="text"] {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 16px;
+  width: 100%;
+  text-align: center;
+}
+
+.todo-input-box input[type="text"]::placeholder {
+  color: #a0a0a0; /* Lighter placeholder for better contrast */
+}
+
+/* Optional: Add a subtle glow on focus */
+.todo-input-box:focus-within {
+  box-shadow: 0 0 20px 8px rgba(122, 92, 219, 0.9); /* More intense glow on focus */
+}

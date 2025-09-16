@@ -14,18 +14,21 @@ function App() {
     fetchTodos();
   }, []);
 
-  // Fetch todos from primary backend
+  // Helper to choose backend URL
+  const getUrl = () => BACKEND_URL || SECOND_URL;
+
+  // Fetch todos from backend
   const fetchTodos = async () => {
     try {
-      console.log("Fetching todos from:", BACKEND_URL);
-      const res = await fetch(`${BACKEND_URL}/todos`);
+      const url = `${getUrl()}/todos`;
+      console.log("Fetching todos from:", url);
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch todos");
       const data = await res.json();
       setTasks(data);
-      console.log("Fetched todos:", data);
     } catch (err) {
       console.error("Error fetching todos:", err);
-      alert("Error fetching todos");
+      alert("Error fetching todos. Check your backend URL or server status.");
     }
   };
 
@@ -34,7 +37,8 @@ function App() {
     if (!newTask.trim()) return;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/todos`, {
+      const url = `${getUrl()}/todos`;
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: newTask }),
@@ -52,7 +56,8 @@ function App() {
   // Delete task
   const deleteTask = async (id) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/todos/${id}`, { method: "DELETE" });
+      const url = `${getUrl()}/todos/${id}`;
+      const res = await fetch(url, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete task");
       setTasks(tasks.filter((t) => t._id !== id));
     } catch (err) {
@@ -67,7 +72,8 @@ function App() {
     if (!updatedText?.trim()) return;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/todos/${id}`, {
+      const url = `${getUrl()}/todos/${id}`;
+      const res = await fetch(url, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: updatedText }),
@@ -86,7 +92,8 @@ function App() {
     const newStatus = task.status === "pending" ? "done" : "pending";
 
     try {
-      const res = await fetch(`${BACKEND_URL}/todos/${task._id}`, {
+      const url = `${getUrl()}/todos/${task._id}`;
+      const res = await fetch(url, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -118,7 +125,9 @@ function App() {
         <ol>
           {tasks.map((task) => (
             <li key={task._id}>
-              <span style={{ textDecoration: task.status === "done" ? "line-through" : "none" }}>
+              <span
+                style={{ textDecoration: task.status === "done" ? "line-through" : "none" }}
+              >
                 {task.task || "(no title)"}
               </span>{" "}
               - {task.status}

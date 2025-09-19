@@ -10,12 +10,19 @@ let db;
 
 async function connectDB() {
   try {
+    console.log("⏳ Connecting to MongoDB Atlas...");
     await client.connect();
     console.log("✅ Connected to MongoDB Atlas");
     db = client.db("todoDB"); // Change DB name if needed
     return db;
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err.message);
+    console.log("💡 Possible solutions:");
+    console.log("   1. Check your internet connection");
+    console.log("   2. Verify MongoDB Atlas cluster is running");
+    console.log("   3. Check IP whitelist in MongoDB Atlas");
+    console.log("   4. Verify username/password in .env file");
+    console.log("   5. Try using local MongoDB: mongodb://localhost:27017/todoDB");
     process.exit(1);
   }
 }

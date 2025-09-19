@@ -6,11 +6,7 @@ const { connectDB } = require("./config/db");
 const todoRoutes = require("./routes/todoRoutes");
 
 const app = express();
-<<<<<<< HEAD
-const PORT = 5000;
-=======
 const PORT = process.env.PORT || 5000;
->>>>>>> ee35d98d8fccd7f6d691a4106c2e77e66e3b09aa
 
 // ✅ CORS Middleware
 app.use(cors({

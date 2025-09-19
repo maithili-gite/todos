@@ -2,15 +2,23 @@ const { getTodosCollection, ObjectId } = require("../models/todoModel");
 
 // Get all todos
 const getTodos = async (req, res) => {
-  const todos = await getTodosCollection().find().toArray();
-  res.json(todos);
+  try {
+    const todos = await getTodosCollection().find().toArray();
+    res.json(todos);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch todos" });
+  }
 };
 
 // Add new todo
 const addTodo = async (req, res) => {
-  const { task, status = "pending" } = req.body;
-  const result = await getTodosCollection().insertOne({ task, status });
-  res.status(201).json({ _id: result.insertedId, task, status });
+  try {
+    const { task, status = "pending" } = req.body;
+    const result = await getTodosCollection().insertOne({ task, status });
+    res.status(201).json({ _id: result.insertedId, task, status });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create todo" });
+  }
 };
 
 // Update todo
@@ -28,7 +36,7 @@ const updateTodo = async (req, res) => {
     if (!result) return res.status(404).json({ error: "Todo not found" });
 
     res.json(result);
-  } catch {
+  } catch (err) {
     res.status(400).json({ error: "Invalid ID format" });
   }
 };
@@ -45,7 +53,7 @@ const deleteTodo = async (req, res) => {
     if (!result) return res.status(404).json({ error: "Todo not found" });
 
     res.json(result);
-  } catch {
+  } catch (err) {
     res.status(400).json({ error: "Invalid ID format" });
   }
 };

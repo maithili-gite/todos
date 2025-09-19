@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-
-const BASE_URL = "https://todos-backend-atpy.onrender.com/todos";
+import { TODOS_ENDPOINT, apiRequest } from "./config/api";
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchTodos();
@@ -13,12 +13,14 @@ function App() {
 
   const fetchTodos = async () => {
     try {
-      const res = await fetch(BASE_URL);
-      if (!res.ok) throw new Error("Failed to fetch todos");
-      const data = await res.json();
+      setLoading(true);
+      const data = await apiRequest(TODOS_ENDPOINT);
       setTasks(data);
-    } catch {
-      alert("Error fetching todos");
+    } catch (error) {
+      console.error("Error fetching todos:", error);
+      alert("Error fetching todos. Please check if the backend is running.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -26,25 +28,24 @@ function App() {
     if (!newTask.trim()) return;
 
     try {
-      const res = await fetch(BASE_URL, {
+      const addedTask = await apiRequest(TODOS_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: newTask }),
       });
-      const addedTask = await res.json();
       setTasks([...tasks, addedTask]);
       setNewTask("");
-    } catch {
+    } catch (error) {
+      console.error("Error adding task:", error);
       alert("Error adding task");
     }
   };
 
   const deleteTask = async (id) => {
     try {
-      const res = await fetch(`${BASE_URL}/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
+      await apiRequest(`${TODOS_ENDPOINT}/${id}`, { method: "DELETE" });
       setTasks(tasks.filter((t) => t._id !== id));
-    } catch {
+    } catch (error) {
+      console.error("Error deleting task:", error);
       alert("Error deleting task");
     }
   };
@@ -54,14 +55,13 @@ function App() {
     if (!updatedText?.trim()) return;
 
     try {
-      const res = await fetch(`${BASE_URL}/${id}`, {
+      const updatedTask = await apiRequest(`${TODOS_ENDPOINT}/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: updatedText }),
       });
-      const updatedTask = await res.json();
       setTasks(tasks.map((t) => (t._id === id ? updatedTask : t)));
-    } catch {
+    } catch (error) {
+      console.error("Error updating task:", error);
       alert("Error updating task");
     }
   };
@@ -70,14 +70,13 @@ function App() {
     const newStatus = task.status === "pending" ? "done" : "pending";
 
     try {
-      const res = await fetch(`${BASE_URL}/${task._id}`, {
+      const updatedTask = await apiRequest(`${TODOS_ENDPOINT}/${task._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      const updatedTask = await res.json();
       setTasks(tasks.map((t) => (t._id === task._id ? updatedTask : t)));
-    } catch {
+    } catch (error) {
+      console.error("Error updating status:", error);
       alert("Error updating status");
     }
   };
@@ -92,27 +91,36 @@ function App() {
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
             placeholder="Enter task"
+            onKeyPress={(e) => e.key === 'Enter' && addTask()}
           />
-          <button onClick={addTask}>Add</button>
+          <button onClick={addTask} disabled={loading}>Add</button>
         </div>
 
-        <ol>
-          {tasks.map((task) => (
-            <li key={task._id}>
-              <span style={{ textDecoration: task.status === "done" ? "line-through" : "none" }}>
-                {task.task || "(no title)"}
-              </span>{" "}
-              - {task.status}
-              <div className="btn-group">
-                <button onClick={() => editTask(task._id, task.task)}>Edit</button>
-                <button onClick={() => deleteTask(task._id)}>Delete</button>
-                <button onClick={() => toggleStatus(task)}>
-                  {task.status === "pending" ? "Mark as Done" : "Undo"}
-                </button>
-              </div>
-            </li>
-          ))}
-        </ol>
+        {loading ? (
+          <p>Loading tasks...</p>
+        ) : (
+          <ol>
+            {tasks.length === 0 ? (
+              <li>No tasks yet. Add one above!</li>
+            ) : (
+              tasks.map((task) => (
+                <li key={task._id}>
+                  <span style={{ textDecoration: task.status === "done" ? "line-through" : "none" }}>
+                    {task.task || "(no title)"}
+                  </span>{" "}
+                  - {task.status}
+                  <div className="btn-group">
+                    <button onClick={() => editTask(task._id, task.task)}>Edit</button>
+                    <button onClick={() => deleteTask(task._id)}>Delete</button>
+                    <button onClick={() => toggleStatus(task)}>
+                      {task.status === "pending" ? "Mark as Done" : "Undo"}
+                    </button>
+                  </div>
+                </li>
+              ))
+            )}
+          </ol>
+        )}
       </div>
     </div>
   );

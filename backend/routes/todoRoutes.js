@@ -37,8 +37,8 @@ router.put("/:id", async (req, res) => {
       { returnDocument: "after" }
     );
 
-    if (!result.value) return res.status(404).json({ error: "Todo not found" });
-    res.json(result.value);
+    if (!result) return res.status(404).json({ error: "Todo not found" });
+    res.json(result);
   } catch (err) {
     res.status(400).json({ error: "Invalid ID format" });
   }
@@ -53,8 +53,8 @@ router.delete("/:id", async (req, res) => {
       _id: new ObjectId(id),
     });
 
-    if (!result.value) return res.status(404).json({ error: "Todo not found" });
-    res.json(result.value);
+    if (!result) return res.status(404).json({ error: "Todo not found" });
+    res.json(result);
   } catch (err) {
     res.status(400).json({ error: "Invalid ID format" });
   }

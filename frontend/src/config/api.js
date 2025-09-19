@@ -3,7 +3,7 @@ const getApiUrl = () => {
   // Check if we're in production (deployed)
   if (import.meta.env.PROD) {
     // Use production backend URL
-    return import.meta.env.VITE_API_URL || 'https://todos-backend-atpy.onrender.com/todos';
+    return import.meta.env.VITE_API_URL || 'https://todos-1-cj0v.onrender.com';
   }
   
   // Development mode - use localhost
